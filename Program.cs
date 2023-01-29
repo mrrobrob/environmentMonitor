@@ -35,7 +35,7 @@ app.MapGet("/api/getAll", async ([FromServices]DataClient client) =>
 {
     return await client.GetAll();
 });
-app.MapGet("/api/save", async ([FromBody]UploadDataRecord dataRecord, [FromServices] DataClient client) => {
+app.MapPost("/api/save", async ([FromBody]UploadDataRecord dataRecord, [FromServices] DataClient client) => {
     await client.Save(dataRecord);
 });
 
