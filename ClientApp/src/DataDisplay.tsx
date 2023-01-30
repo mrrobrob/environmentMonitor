@@ -1,4 +1,30 @@
 import { useEffect, useState } from "react";
+import * as React from "react";
+import { Line } from "react-chartjs-2";
+import 'chartjs-adapter-date-fns';
+
+import {
+    Chart as ChartJS,
+    Colors,
+    LinearScale,
+    TimeScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js';
+
+ChartJS.register(
+    Colors,
+    TimeScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+);
 
 interface DataRecord {
     id: number;
@@ -10,6 +36,9 @@ interface DataRecord {
 
 export const DataDisplay = () => {
     const [data, setData] = useState<DataRecord[]>();
+    
+    const [dateTo, setDateTo] = React.useState(new Date());
+    const [dateFrom, setDateFrom] = React.useState(new Date(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate() - 1));
 
     useEffect(() => {
         fetch("api/getAll")
@@ -21,24 +50,79 @@ export const DataDisplay = () => {
         return <p>Loading</p>
     }
 
-    return <table>
-        <thead>
-            <tr>
-                <th>When</th>                
-                <th>Machine Id</th>
-                <th>Key</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            {data.map(record =>
-                <tr key={record.id}>
-                    <td>{new Date(record.when).toISOString()}</td>
-                    <td>{record.machineId}</td>
-                    <td>{record.key}</td>
-                    <td>{record.value}</td>
-                </tr>
-            )}
-        </tbody>
-    </table>
+    const options = {
+        responsive: true,
+        scales: {
+            x: {
+                type: "time" as const,
+                time: {
+                    unit: 'minute' as const,
+                    displayFormats: {
+                        minute: 'yyyy-MM-dd hh:mm'
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'right' as const,
+            },
+        },
+    };
+
+    const groupedData = data
+        .filter(e => {
+            const when = new Date(e.when);
+            return when > dateFrom && when < dateTo;
+        })
+        .reduce((result: any, dataRecord) => {
+        const key = `${dataRecord.machineId} - ${dataRecord.key}`;
+        return {
+            ...result,
+            [key]: [...(result[key] || []), dataRecord]
+        };
+    }, {});
+    
+    const chartData = {
+        datasets: Object.keys(groupedData).map(key => {
+
+            const dataRecords: DataRecord[] = groupedData[key];
+                        
+            return {
+                label: key,
+                data: dataRecords.map(dataRecord => ({ x: dataRecord.when, y: dataRecord.value }))
+            }
+        }),
+    };
+    
+    const handleDateFromChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+        const date = ev.currentTarget.valueAsDate;
+
+        if (!date) {
+            return;
+        }
+
+        date.setHours(0, 0, 0, 0);
+        setDateFrom(date);
+    }
+
+    const handleDateToChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+        const date = ev.currentTarget.valueAsDate;
+        if (!date) {
+            return;
+        }
+        date.setHours(23, 59, 59, 999);
+        setDateTo(date);
+    }
+
+    const dateFromStr = dateFrom.toISOString().substr(0, 10);
+    const dateToStr = dateTo.toISOString().substr(0, 10);
+
+    return <div>
+        <div>
+            <label>From: <input type="date" onChange={handleDateFromChange} value={dateFromStr} /> </label>
+            <label>To: <input type="date" onChange={handleDateToChange} value={dateToStr} /> </label>
+        </div>
+        <Line options={options} data={chartData} />
+    </div>
 }
