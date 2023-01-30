@@ -13,10 +13,12 @@ import {
     Title,
     Tooltip,
     Legend,
+    Decimation,
 } from 'chart.js';
 
 ChartJS.register(
     Colors,
+    Decimation,
     TimeScale,
     LinearScale,
     PointElement,
@@ -36,7 +38,7 @@ interface DataRecord {
 
 export const DataDisplay = () => {
     const [data, setData] = useState<DataRecord[]>();
-    
+
     const [dateTo, setDateTo] = React.useState(new Date());
     const [dateFrom, setDateFrom] = React.useState(new Date(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate() - 1));
 
@@ -67,6 +69,11 @@ export const DataDisplay = () => {
             legend: {
                 position: 'right' as const,
             },
+            decimation: {
+                algorithm: 'lttb' as const,
+                enabled: true,
+                samples: 150
+            }
         },
     };
 
@@ -76,25 +83,25 @@ export const DataDisplay = () => {
             return when > dateFrom && when < dateTo;
         })
         .reduce((result: any, dataRecord) => {
-        const key = `${dataRecord.machineId} - ${dataRecord.key}`;
-        return {
-            ...result,
-            [key]: [...(result[key] || []), dataRecord]
-        };
-    }, {});
-    
+            const key = `${dataRecord.machineId} - ${dataRecord.key}`;
+            return {
+                ...result,
+                [key]: [...(result[key] || []), dataRecord]
+            };
+        }, {});
+
     const chartData = {
         datasets: Object.keys(groupedData).map(key => {
 
             const dataRecords: DataRecord[] = groupedData[key];
-                        
+
             return {
                 label: key,
                 data: dataRecords.map(dataRecord => ({ x: dataRecord.when, y: dataRecord.value }))
             }
         }),
     };
-    
+
     const handleDateFromChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
         const date = ev.currentTarget.valueAsDate;
 
