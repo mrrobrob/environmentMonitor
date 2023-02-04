@@ -52,8 +52,9 @@ export const DataDisplay = () => {
         return <p>Loading</p>
     }
 
-    const options = {
+    const options = {        
         responsive: true,
+        maintainAspectRatio: false,
         scales: {
             x: {
                 type: "time" as const,
@@ -122,14 +123,16 @@ export const DataDisplay = () => {
         setDateTo(date);
     }
 
-    const dateFromStr = dateFrom.toISOString().substr(0, 10);
-    const dateToStr = dateTo.toISOString().substr(0, 10);
+    const dateFromStr = dateFrom.toISOString().substring(0, 10);
+    const dateToStr = dateTo.toISOString().substring(0, 10);
 
-    return <div>
+    return <>
         <div>
             <label>From: <input type="date" onChange={handleDateFromChange} value={dateFromStr} /> </label>
             <label>To: <input type="date" onChange={handleDateToChange} value={dateToStr} /> </label>
         </div>
-        <Line options={options} data={chartData} />
-    </div>
+        <div style={{minHeight:400}}>
+            <Line options={options} data={chartData} />            
+        </div>
+    </>
 }

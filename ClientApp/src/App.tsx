@@ -1,12 +1,9 @@
 import './App.css';
 import { DataDisplay } from './DataDisplay';
+import { Header } from './Header';
 
 export const App = () =>
     <div className="App">
-        <header className="App-header">
-            <p>House Monitoring</p>
-        </header>
-        <div>
-            <DataDisplay />
-        </div>
+        <Header />
+        <DataDisplay />        
     </div>
