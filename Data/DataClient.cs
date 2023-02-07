@@ -11,6 +11,7 @@ namespace environmentMonitor.Data
         {
             this.context = context;
         }
+
         public async Task<List<DataRecord>> GetAll()
         {
             var data = await context.Set<DataRecord>()
@@ -29,6 +30,15 @@ namespace environmentMonitor.Data
         {
             await context.DataRecords.AddAsync(new DataRecord(0, DateTime.UtcNow, "Dummy Machine", "Key", 12.5));
             await context.SaveChangesAsync();
+        }
+
+        public async Task<List<DataRecord>> GetLatest()
+        {
+            var data = await context.Set<DataRecord>()
+                .GroupBy(e => new { e.MachineId, e.Key })
+                .Select(e => e.OrderBy(e => e.When).First())
+                .ToListAsync();
+            return data;
         }
     }
 }

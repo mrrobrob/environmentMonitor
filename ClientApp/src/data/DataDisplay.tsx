@@ -15,6 +15,7 @@ import {
     Legend,
     Decimation,
 } from 'chart.js';
+import { DataRecord } from "./DataModels";
 
 ChartJS.register(
     Colors,
@@ -28,19 +29,11 @@ ChartJS.register(
     Legend
 );
 
-interface DataRecord {
-    id: number;
-    when: Date;
-    machineId: string;
-    key: string;
-    value: number;
-}
-
 export const DataDisplay = () => {
     const [data, setData] = useState<DataRecord[]>();
 
     const [dateTo, setDateTo] = React.useState(new Date());
-    const [dateFrom, setDateFrom] = React.useState(new Date(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate() - 1));
+    const [dateFrom, setDateFrom] = React.useState(new Date(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate()));
 
     useEffect(() => {
         fetch("api/getAll")
@@ -61,7 +54,7 @@ export const DataDisplay = () => {
                 time: {
                     unit: 'minute' as const,
                     displayFormats: {
-                        minute: 'yyyy-MM-dd hh:mm'
+                        minute: 'yyyy-MM-dd HH:mm'
                     }
                 }
             }
