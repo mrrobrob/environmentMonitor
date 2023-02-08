@@ -25,25 +25,15 @@ if (!app.Environment.IsDevelopment())
     var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<EnvironmentContext>();
     dbContext.Database.Migrate();
-
 }
 
 app.UseStaticFiles();
 
-app.MapGet("/api/getAll", async ([FromServices]DataClient client) =>
-{
-    return await client.GetAll();
-});
+app.MapGet("/api/getAll", ([FromServices] DataClient client) => client.GetAll());
+app.MapGet("/api/latest", ([FromServices] DataClient client) => client.GetLatest());
+app.MapPost("/api/save", ([FromBody] UploadDataRecord dataRecord, [FromServices] DataClient client) => client.Save(dataRecord));
 
-app.MapGet("/api/latest", async ([FromServices] DataClient client) => await client.GetLatest());
-
-app.MapPost("/api/save", async ([FromBody]UploadDataRecord dataRecord, [FromServices] DataClient client) => {
-    await client.Save(dataRecord);
-});
-
-app.MapGet("/api/saveTest", async ([FromServices] DataClient client) => {
-    await client.SaveTest();
-});
+app.MapGet("/api/saveTest", ([FromServices] DataClient client) => client.SaveTest());
 
 app.MapFallbackToFile("index.html");
 
