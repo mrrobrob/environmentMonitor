@@ -28,7 +28,6 @@ if (!app.Environment.IsDevelopment())
 
 }
 
-app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapGet("/api/getAll", async ([FromServices]DataClient client) =>
@@ -46,6 +45,6 @@ app.MapGet("/api/saveTest", async ([FromServices] DataClient client) => {
     await client.SaveTest();
 });
 
-
+app.MapFallbackToFile("index.html");
 
 app.Run();

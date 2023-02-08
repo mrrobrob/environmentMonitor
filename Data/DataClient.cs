@@ -36,9 +36,9 @@ namespace environmentMonitor.Data
         {
             var data = await context.Set<DataRecord>()
                 .GroupBy(e => new { e.MachineId, e.Key })
-                .Select(e => e.OrderBy(e => e.When).First())
+                .Select(e => e.OrderByDescending(e => e.When).First())
                 .ToListAsync();
-            return data;
+            return data.OrderBy(e => e.MachineId).ThenBy(e => e.Key).ToList();
         }
     }
 }
