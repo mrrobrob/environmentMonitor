@@ -1,4 +1,5 @@
 using environmentMonitor.Data;
+using environmentMonitor.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,13 +43,14 @@ if (!app.Environment.IsDevelopment())
     catch (Exception ex)
     {
         Console.WriteLine(ex.ToString());
+        throw;
     }
 }
 
 app.UseStaticFiles();
 
 app.MapGet("/api/dataSource/getAll", ([FromServices] DataSourceClient client) => client.GetAllAsync());
-app.MapGet("/api/dataRecord/getAll", ([FromServices] DataRecordClient client) => client.GetAllAsync());
+app.MapGet("/api/dataRecord/getAll", (DataRecordFilter filter, [FromServices] DataRecordClient client) => client.GetAllAsync(filter));
 app.MapGet("/api/dataRecord/latest", ([FromServices] DataRecordClient client) => client.GetLatestAsync());
 
 app.MapGet("/api/dataRecord/saveTest", ([FromServices] DataRecordClient client) => client.SaveTestAsync());

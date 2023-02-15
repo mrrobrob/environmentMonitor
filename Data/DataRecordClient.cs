@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using environmentMonitor.Data.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace environmentMonitor.Data
@@ -14,11 +15,13 @@ namespace environmentMonitor.Data
             this.dataSourceClient = dataSourceClient;
         }
 
-        public async Task<List<DataRecord>> GetAllAsync()
+        public async Task<List<DataRecord>> GetAllAsync(DataRecordFilter filter)
         {
             var data = await context.Set<DataRecord>()
+                .Where(e => e.When > filter.From && e.When < filter.To)
                 .OrderByDescending(e => e.When)
                 .ToListAsync();
+
             return data;
         }
 

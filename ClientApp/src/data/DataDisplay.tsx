@@ -30,17 +30,22 @@ ChartJS.register(
 );
 
 export const DataDisplay = () => {
-    const [data, setData] = useState<DataRecord[]>();
+    const [dataRecords, setDataRecords] = useState<DataRecord[]>();
     const [dataSources, setDataSources] = useState<DataSource[]>();
 
     const [dateTo, setDateTo] = React.useState(new Date());
     const [dateFrom, setDateFrom] = React.useState(new Date(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate()));
 
     useEffect(() => {
-        fetch("api/dataRecord/getAll")
+        const queryString = new URLSearchParams({
+            From: dateFrom.toISOString(),
+            To: dateTo.toISOString(),
+        });
+
+        fetch("api/dataRecord/getAll?" + queryString)
             .then(response => response.json())
-            .then(data => setData(data))
-    }, [])
+            .then(data => setDataRecords(data))
+    }, [dateTo, dateFrom])
 
     useEffect(() => {
         fetch("api/dataSource/getAll")
@@ -48,7 +53,7 @@ export const DataDisplay = () => {
             .then(dataSources => setDataSources(dataSources))
     }, []);
 
-    if (!data || !dataSources) {
+    if (!dataRecords || !dataSources) {
         return <p>Loading</p>
     }
 
@@ -88,7 +93,7 @@ export const DataDisplay = () => {
         },
     };
 
-    const groupedData = data
+    const groupedData = dataRecords
         .filter(e => {
             const when = new Date(e.when);
             return when > dateFrom && when < dateTo;
