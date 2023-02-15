@@ -22,23 +22,32 @@ namespace environmentMonitor.Data
 
         public async Task Save([FromBody] UploadDataRecord dataRecord)
         {
-            await context.DataRecords.AddAsync(new DataRecord(0, DateTime.UtcNow, dataRecord.MachineId, dataRecord.Key, dataRecord.Value));
+            var dataSourceId = await GetOrCreateDataSourceAsync(dataRecord.MachineId, dataRecord.Key);
+            await context.DataRecords.AddAsync(new DataRecord(0, DateTime.UtcNow, dataSourceId, dataRecord.Value));
             await context.SaveChangesAsync();
+        }
+
+        private async Task<long> GetOrCreateDataSourceAsync(string machineId, string key)
+        {            
+            var result = await context.DataSources.AddAsync(new DataSource(0, machineId, key));
+            await context.SaveChangesAsync();
+            return result.Entity.Id;
         }
 
         public async Task SaveTest()
         {
-            await context.DataRecords.AddAsync(new DataRecord(0, DateTime.UtcNow, "Dummy Machine", "Key", 12.5));
+            var dataSourceId = await GetOrCreateDataSourceAsync("Dummy Machine", "Key");
+            await context.DataRecords.AddAsync(new DataRecord(0, DateTime.UtcNow, dataSourceId, 12.5));
             await context.SaveChangesAsync();
         }
 
         public async Task<List<DataRecord>> GetLatest()
         {
             var data = await context.Set<DataRecord>()
-                .GroupBy(e => new { e.MachineId, e.Key })
+                .GroupBy(e => e.DataSourceId)
                 .Select(e => e.OrderByDescending(e => e.When).First())
                 .ToListAsync();
-            return data.OrderBy(e => e.MachineId).ThenBy(e => e.Key).ToList();
+            return data;
         }
     }
 }
