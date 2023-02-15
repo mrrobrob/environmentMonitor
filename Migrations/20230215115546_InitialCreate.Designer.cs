@@ -11,8 +11,8 @@ using environmentMonitor.Data;
 namespace environmentMonitor.Migrations
 {
     [DbContext(typeof(EnvironmentContext))]
-    [Migration("20230215092455_SplitDataSourceFromDataRecord")]
-    partial class SplitDataSourceFromDataRecord
+    [Migration("20230215115546_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

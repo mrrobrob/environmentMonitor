@@ -8,5 +8,9 @@ namespace environmentMonitor.Data
     [Index(nameof(When))]
     public record class DataRecord(long Id, DateTime When, long DataSourceId, double Value);
 
-    public record class UploadDataRecord(string MachineId, string Key, double Value);
+    public record class UploadOldDataRecord(string MachineId, string Key, double Value);
+
+    public record class UploadData(string MachineId, Dictionary<string, double> Records);
+
+
 }

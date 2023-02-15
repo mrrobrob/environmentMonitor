@@ -15,7 +15,7 @@ import {
     Legend,
     Decimation,
 } from 'chart.js';
-import { DataRecord } from "./DataModels";
+import { DataRecord, DataSource } from "./DataModels";
 
 ChartJS.register(
     Colors,
@@ -31,18 +31,35 @@ ChartJS.register(
 
 export const DataDisplay = () => {
     const [data, setData] = useState<DataRecord[]>();
+    const [dataSources, setDataSources] = useState<DataSource[]>();
 
     const [dateTo, setDateTo] = React.useState(new Date());
     const [dateFrom, setDateFrom] = React.useState(new Date(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate()));
 
     useEffect(() => {
-        fetch("api/getAll")
+        fetch("api/dataRecord/getAll")
             .then(response => response.json())
             .then(data => setData(data))
     }, [])
 
-    if (!data) {
+    useEffect(() => {
+        fetch("api/dataSource/getAll")
+            .then(response => response.json())
+            .then(dataSources => setDataSources(dataSources))
+    }, []);
+
+    if (!data || !dataSources) {
         return <p>Loading</p>
+    }
+
+    const getDataSource = (id: number) => {
+        const ds = dataSources.find(e => e.id === id);
+
+        if (!ds) {
+            throw new Error(`DataSource not found for id ${id}`);
+        }
+
+        return `${ds.machineId} - ${ds.key}`;
     }
 
     const options = {        
@@ -77,7 +94,7 @@ export const DataDisplay = () => {
             return when > dateFrom && when < dateTo;
         })
         .reduce((result: any, dataRecord) => {
-            const key = `${dataRecord.machineId} - ${dataRecord.key}`;
+            const key = getDataSource(dataRecord.dataSourceId);
             return {
                 ...result,
                 [key]: [...(result[key] || []), dataRecord]

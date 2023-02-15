@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<DataClient>();
+builder.Services.AddScoped<DataSourceClient>();
+builder.Services.AddScoped<DataRecordClient>();
 builder.Services.AddScoped<EnvironmentContext>();
 
 var folder = Environment.SpecialFolder.LocalApplicationData;
@@ -22,18 +23,39 @@ if (!app.Environment.IsDevelopment())
 }
 
 {
-    var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<EnvironmentContext>();
-    dbContext.Database.Migrate();
+    try
+    {           
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EnvironmentContext>();
+
+        var pendingMigrationCount = dbContext.Database.GetPendingMigrations().Count();
+
+        if (pendingMigrationCount > 0)
+        {
+            Console.WriteLine($"Attempting to apply {pendingMigrationCount} migrations...");
+
+            dbContext.Database.Migrate();
+
+            Console.WriteLine("Database has been updated");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.ToString());
+    }
 }
 
 app.UseStaticFiles();
 
-app.MapGet("/api/getAll", ([FromServices] DataClient client) => client.GetAll());
-app.MapGet("/api/latest", ([FromServices] DataClient client) => client.GetLatest());
-app.MapPost("/api/save", ([FromBody] UploadDataRecord dataRecord, [FromServices] DataClient client) => client.Save(dataRecord));
+app.MapGet("/api/dataSource/getAll", ([FromServices] DataSourceClient client) => client.GetAllAsync());
+app.MapGet("/api/dataRecord/getAll", ([FromServices] DataRecordClient client) => client.GetAllAsync());
+app.MapGet("/api/dataRecord/latest", ([FromServices] DataRecordClient client) => client.GetLatestAsync());
 
-app.MapGet("/api/saveTest", ([FromServices] DataClient client) => client.SaveTest());
+app.MapGet("/api/dataRecord/saveTest", ([FromServices] DataRecordClient client) => client.SaveTestAsync());
+app.MapPost("/api/dataRecord/save", ([FromBody] UploadData data, [FromServices] DataRecordClient client) => client.SaveAsync(data));
+
+// legacy
+app.MapPost("/api/save", ([FromBody] UploadOldDataRecord dataRecord, [FromServices] DataRecordClient client) => client.SaveOldAsync(dataRecord));
 
 app.MapFallbackToFile("index.html");
 
