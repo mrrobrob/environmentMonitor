@@ -33,11 +33,15 @@ export const DataDisplay = () => {
     const [dataRecords, setDataRecords] = useState<DataRecord[]>();
     const [dataSources, setDataSources] = useState<DataSource[]>();
 
+    const [machineFilter, setMachineFilter] = React.useState("");
+    const [keyFilter, setKeyFilter] = React.useState("");
     const [dateTo, setDateTo] = React.useState(new Date());
     const [dateFrom, setDateFrom] = React.useState(new Date(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate()));
 
     useEffect(() => {
         const queryString = new URLSearchParams({
+            Machine: machineFilter,
+            Key: keyFilter,
             From: dateFrom.toISOString(),
             To: dateTo.toISOString(),
         });
@@ -45,7 +49,7 @@ export const DataDisplay = () => {
         fetch("api/dataRecord/getAll?" + queryString)
             .then(response => response.json())
             .then(data => setDataRecords(data))
-    }, [dateTo, dateFrom])
+    }, [keyFilter, machineFilter, dateTo, dateFrom])
 
     useEffect(() => {
         fetch("api/dataSource/getAll")
@@ -67,7 +71,7 @@ export const DataDisplay = () => {
         return `${ds.machineId} - ${ds.key}`;
     }
 
-    const options = {        
+    const options = {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
@@ -118,6 +122,18 @@ export const DataDisplay = () => {
         }),
     };
 
+    const handleMachineFilterChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = ev.currentTarget;
+
+        setMachineFilter(value);
+    }
+
+    const handleKeyFilterChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = ev.currentTarget;
+
+        setKeyFilter(value);
+    }
+
     const handleDateFromChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
         const date = ev.currentTarget.valueAsDate;
 
@@ -143,11 +159,13 @@ export const DataDisplay = () => {
 
     return <>
         <div>
+            <label>Machine: <input type="text" onChange={handleMachineFilterChange} value={machineFilter} /></label>
+            <label>Key: <input type="text" onChange={handleKeyFilterChange} value={keyFilter} /></label>
             <label>From: <input type="date" onChange={handleDateFromChange} value={dateFromStr} /> </label>
             <label>To: <input type="date" onChange={handleDateToChange} value={dateToStr} /> </label>
         </div>
-        <div style={{minHeight:400}}>
-            <Line options={options} data={chartData} />            
+        <div style={{ minHeight: 400 }}>
+            <Line options={options} data={chartData} />
         </div>
     </>
 }

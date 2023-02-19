@@ -17,15 +17,32 @@ namespace environmentMonitor.Data.Models
                     throw new ArgumentNullException(nameof(To));
                 }
             }
-                        
+
             var result = new DataRecordFilter
             {
                 From = from,
-                To = to
+                To = to,
+                Machine = GetQueryValue(context, nameof(Machine)),
+                Key = GetQueryValue(context, nameof(Key))
             };
+
             return ValueTask.FromResult(result);
         }
 
+        private static string GetQueryValue(HttpContext context, string queryStringKey)
+        {
+            string? result = context.Request.Query[queryStringKey];
+
+            if (result == null)
+            {
+                throw new NullReferenceException(queryStringKey);
+            }
+
+            return result;
+        }
+
+        public required string Machine { get; set; }
+        public required string Key { get; set; }
         public required DateTime From { get; set; }
         public required DateTime To { get; set; }
     }

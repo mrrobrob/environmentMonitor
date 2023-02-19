@@ -17,8 +17,24 @@ namespace environmentMonitor.Data
 
         public async Task<List<DataRecord>> GetAllAsync(DataRecordFilter filter)
         {
-            var data = await context.Set<DataRecord>()
+
+            IQueryable<DataSource> dataSourcesQuery = context.Set<DataSource>();
+
+            if (filter.Machine != "")
+            {
+                dataSourcesQuery = dataSourcesQuery.Where(e => e.MachineId.Contains(filter.Machine));
+            }
+
+            if (filter.Key != "")
+            {
+                dataSourcesQuery = dataSourcesQuery.Where(e => e.Key.Contains(filter.Key));
+            }
+
+            var dataQuery = context.Set<DataRecord>()
                 .Where(e => e.When > filter.From && e.When < filter.To)
+                .Where(e => dataSourcesQuery.Select(f => f.Id).Contains(e.DataSourceId));
+
+            var data = await dataQuery
                 .OrderByDescending(e => e.When)
                 .ToListAsync();
 

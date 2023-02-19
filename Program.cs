@@ -23,28 +23,27 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+
+try
 {
-    try
-    {           
-        using var scope = app.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<EnvironmentContext>();
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<EnvironmentContext>();
 
-        var pendingMigrationCount = dbContext.Database.GetPendingMigrations().Count();
+    var pendingMigrationCount = dbContext.Database.GetPendingMigrations().Count();
 
-        if (pendingMigrationCount > 0)
-        {
-            Console.WriteLine($"Attempting to apply {pendingMigrationCount} migrations...");
-
-            dbContext.Database.Migrate();
-
-            Console.WriteLine("Database has been updated");
-        }
-    }
-    catch (Exception ex)
+    if (pendingMigrationCount > 0)
     {
-        Console.WriteLine(ex.ToString());
-        throw;
+        Console.WriteLine($"Attempting to apply {pendingMigrationCount} migrations...");
+
+        dbContext.Database.Migrate();
+
+        Console.WriteLine("Database has been updated");
     }
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex.ToString());
+    throw;
 }
 
 app.UseStaticFiles();
