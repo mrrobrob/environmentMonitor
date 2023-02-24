@@ -35,10 +35,12 @@ export const DataDisplay = () => {
 
     const [machineFilter, setMachineFilter] = React.useState("");
     const [keyFilter, setKeyFilter] = React.useState("");
-    const [dateTo, setDateTo] = React.useState(new Date());
-    const [dateFrom, setDateFrom] = React.useState(new Date(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate()));
+    const now = new Date();
+    const [dateTo, setDateTo] = React.useState(new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59));
+    const [dateFrom, setDateFrom] = React.useState(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
 
-    useEffect(() => {
+    const refreshData = React.useCallback(() => {
+
         const queryString = new URLSearchParams({
             Machine: machineFilter,
             Key: keyFilter,
@@ -49,7 +51,11 @@ export const DataDisplay = () => {
         fetch("api/dataRecord/getAll?" + queryString)
             .then(response => response.json())
             .then(data => setDataRecords(data))
-    }, [keyFilter, machineFilter, dateTo, dateFrom])
+    }, [keyFilter, machineFilter, dateTo, dateFrom, setDataRecords]);
+
+    useEffect(() => {
+        refreshData();
+    }, [refreshData])
 
     useEffect(() => {
         fetch("api/dataSource/getAll")
@@ -163,6 +169,7 @@ export const DataDisplay = () => {
             <label>Key: <input type="text" onChange={handleKeyFilterChange} value={keyFilter} /></label>
             <label>From: <input type="date" onChange={handleDateFromChange} value={dateFromStr} /> </label>
             <label>To: <input type="date" onChange={handleDateToChange} value={dateToStr} /> </label>
+            <button onClick={refreshData}>Refresh</button>
         </div>
         <div style={{ minHeight: 400 }}>
             <Line options={options} data={chartData} />
